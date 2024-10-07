@@ -40,15 +40,14 @@ function displayFiles() {
   fileListElement.innerHTML = "";
   fileList.forEach((file, index) => {
     const fileElement = document.createElement("div");
-    fileElement.textContent = file.name;
-    const downloadButton = document.createElement("button");
-    downloadButton.textContent = "Download";
-    downloadButton.onclick = () => downloadFile(index);
-    const deleteButton = document.createElement("button");
-    deleteButton.textContent = "Delete";
-    deleteButton.onclick = () => deleteFile(index);
-    fileElement.appendChild(downloadButton);
-    fileElement.appendChild(deleteButton);
+    fileElement.className = "file-item";
+    fileElement.innerHTML = `
+      <span>${file.name}</span>
+      <div class="file-actions">
+        <button class="btn btn-small" onclick="downloadFile(${index})">Download</button>
+        <button class="btn btn-small btn-danger" onclick="deleteFile(${index})">Delete</button>
+      </div>
+    `;
     fileListElement.appendChild(fileElement);
   });
 }
@@ -91,4 +90,6 @@ window.onload = () => {
   init();
   document.getElementById("login-button").onclick = login;
   document.getElementById("upload-button").onclick = uploadFiles;
+  window.downloadFile = downloadFile;
+  window.deleteFile = deleteFile;
 };
