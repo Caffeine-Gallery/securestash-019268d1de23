@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+#auth-section, #file-section {
+    margin-top: 20px;
+}
+
+button {
+    margin: 5px;
+    padding: 5px 10px;
+}
+
+#file-list {
+    margin-top: 20px;
+}
+
+#file-list div {
+    margin-bottom: 10px;
+}
