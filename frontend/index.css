@@ -44,6 +44,10 @@ h1 {
   transition: background-color 0.3s ease;
   display: block;
   margin: 10px auto;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn:hover {

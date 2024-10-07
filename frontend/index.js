@@ -70,6 +70,7 @@ function uploadFiles() {
     reader.readAsDataURL(file);
   }
   fileInput.value = "";
+  updateFileLabel();
 }
 
 function downloadFile(index) {
@@ -86,10 +87,25 @@ function deleteFile(index) {
   displayFiles();
 }
 
+function updateFileLabel() {
+  const fileInput = document.getElementById("file-input");
+  const fileLabel = document.getElementById("file-label");
+  if (fileInput.files.length > 0) {
+    if (fileInput.files.length === 1) {
+      fileLabel.textContent = fileInput.files[0].name;
+    } else {
+      fileLabel.textContent = `${fileInput.files.length} files selected`;
+    }
+  } else {
+    fileLabel.textContent = "Choose Files";
+  }
+}
+
 window.onload = () => {
   init();
   document.getElementById("login-button").onclick = login;
   document.getElementById("upload-button").onclick = uploadFiles;
+  document.getElementById("file-input").onchange = updateFileLabel;
   window.downloadFile = downloadFile;
   window.deleteFile = deleteFile;
 };
