@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudStore - Secure File Storage</title>
+    <title>FileVault - Secure File Storage</title>
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
     <div id="app">
-        <header>
-            <h1><i class="fas fa-cloud"></i> CloudStore</h1>
-        </header>
-
         <main>
             <section id="auth-section">
-                <h2>Welcome to CloudStore</h2>
-                <p>Secure, decentralized file storage on the Internet Computer.</p>
+                <h1><i class="fas fa-vault"></i> FileVault</h1>
                 <button id="login-button" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login</button>
             </section>
 
             <section id="file-section" style="display: none;">
+                <h1><i class="fas fa-vault"></i> FileVault</h1>
                 <div id="file-upload-area">
                     <input type="file" id="file-input" multiple>
                     <label for="file-input" id="file-drop-zone">
@@ -43,10 +39,6 @@
                 </div>
             </section>
         </main>
-
-        <footer>
-            <p>&copy; 2023 CloudStore. Powered by the Internet Computer.</p>
-        </footer>
     </div>
 
     <script type="module" src="index.js"></script>

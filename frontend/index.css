@@ -1,9 +1,10 @@
 :root {
     --primary-color: #4a90e2;
-    --secondary-color: #f5f5f5;
-    --text-color: #333;
+    --background-color: #1a1a1a;
+    --text-color: #f5f5f5;
     --error-color: #e74c3c;
     --success-color: #2ecc71;
+    --secondary-background: #2c2c2c;
 }
 
 * {
@@ -16,7 +17,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: var(--text-color);
-    background-color: var(--secondary-color);
+    background-color: var(--background-color);
 }
 
 #app {
@@ -25,26 +26,11 @@ body {
     min-height: 100vh;
 }
 
-header {
-    background-color: var(--primary-color);
-    color: white;
-    text-align: center;
-    padding: 1rem;
-}
-
 main {
     flex-grow: 1;
     padding: 2rem;
     max-width: 800px;
     margin: 0 auto;
-}
-
-footer {
-    background-color: var(--primary-color);
-    color: white;
-    text-align: center;
-    padding: 1rem;
-    margin-top: auto;
 }
 
 h1, h2 {
@@ -63,7 +49,7 @@ h1, h2 {
 
 .btn-primary {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--text-color);
 }
 
 .btn-primary:hover {
@@ -110,10 +96,10 @@ h1, h2 {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    background-color: white;
+    background-color: var(--secondary-background);
     border-radius: 4px;
     margin-bottom: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .file-actions button {
@@ -135,4 +121,16 @@ h1, h2 {
 #progress-text {
     margin-top: 0.5rem;
     text-align: center;
+}
+
+.loading, .error, .empty-state {
+    text-align: center;
+    padding: 1rem;
+    background-color: var(--secondary-background);
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.error {
+    color: var(--error-color);
 }
