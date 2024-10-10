@@ -24,137 +24,103 @@ actor {
     fileType: Text;
   };
 
-  private stable var stableFiles : [(Principal, [(Text, File)])] = [];
+  type UserFiles = HashMap.HashMap<Text, File>;
 
-  private var files = HashMap.HashMap<Principal, HashMap.HashMap<Text, File>>(0, Principal.equal, Principal.hash);
+  private stable var stableFiles : [(Principal, [(Text, File)])] = [];
+  private var files = HashMap.HashMap<Principal, UserFiles>(0, Principal.equal, Principal.hash);
+
+  private func getUserFiles(user: Principal) : UserFiles {
+    switch (files.get(user)) {
+      case null {
+        let newFileMap = HashMap.HashMap<Text, File>(0, Text.equal, Text.hash);
+        files.put(user, newFileMap);
+        newFileMap
+      };
+      case (?existingFiles) existingFiles;
+    };
+  };
 
   public shared(msg) func isRegistered() : async Bool {
     Option.isSome(files.get(msg.caller))
   };
 
   public shared(msg) func registerUser() : async () {
-    switch (files.get(msg.caller)) {
-      case null {
-        files.put(msg.caller, HashMap.HashMap<Text, File>(0, Text.equal, Text.hash));
-      };
-      case _ {};
-    };
+    ignore getUserFiles(msg.caller);
   };
 
   public shared(msg) func checkFileExists(name: Text) : async Bool {
-    switch (files.get(msg.caller)) {
-      case null { false };
-      case (?userFiles) {
-        Option.isSome(userFiles.get(name))
-      };
-    };
+    Option.isSome(getUserFiles(msg.caller).get(name))
   };
 
   public shared(msg) func uploadFileChunk(name: Text, chunk: Blob, index: Nat, totalChunks: Nat, fileType: Text) : async () {
-    let userFiles = switch (files.get(msg.caller)) {
-      case null {
-        let newFileMap = HashMap.HashMap<Text, File>(0, Text.equal, Text.hash);
-        files.put(msg.caller, newFileMap);
-        newFileMap
-      };
-      case (?existingFiles) { existingFiles };
-    };
-
+    let userFiles = getUserFiles(msg.caller);
     let fileChunk = { chunk = chunk; index = index };
 
     switch (userFiles.get(name)) {
       case null {
-        let newChunks = [fileChunk];
-        userFiles.put(name, { name = name; chunks = newChunks; totalSize = chunk.size(); fileType = fileType });
+        userFiles.put(name, { name = name; chunks = [fileChunk]; totalSize = chunk.size(); fileType = fileType });
       };
       case (?existingFile) {
         let updatedChunks = Array.append(existingFile.chunks, [fileChunk]);
-        userFiles.put(name, { name = name; chunks = updatedChunks; totalSize = existingFile.totalSize + chunk.size(); fileType = fileType });
+        userFiles.put(name, { 
+          name = name; 
+          chunks = updatedChunks; 
+          totalSize = existingFile.totalSize + chunk.size(); 
+          fileType = fileType 
+        });
       };
     };
   };
 
   public shared(msg) func getFiles() : async [{ name: Text; size: Nat; fileType: Text }] {
-    switch (files.get(msg.caller)) {
-      case null { [] };
-      case (?userFiles) {
-        Iter.toArray(Iter.map(userFiles.vals(), func (file: File) : { name: Text; size: Nat; fileType: Text } {
-          { name = file.name; size = file.totalSize; fileType = file.fileType }
-        }))
-      };
-    };
+    Iter.toArray(Iter.map(getUserFiles(msg.caller).vals(), func (file: File) : { name: Text; size: Nat; fileType: Text } {
+      { name = file.name; size = file.totalSize; fileType = file.fileType }
+    }))
   };
 
   public shared(msg) func getTotalChunks(name: Text) : async Nat {
-    switch (files.get(msg.caller)) {
-      case null { 0 };
-      case (?userFiles) {
-        switch (userFiles.get(name)) {
-          case null { 0 };
-          case (?file) {
-            file.chunks.size()
-          };
-        };
-      };
+    switch (getUserFiles(msg.caller).get(name)) {
+      case null 0;
+      case (?file) file.chunks.size();
     };
   };
 
   public shared(msg) func getFileChunk(name: Text, index: Nat) : async ?Blob {
-    switch (files.get(msg.caller)) {
-      case null { null };
-      case (?userFiles) {
-        switch (userFiles.get(name)) {
-          case null { null };
-          case (?file) {
-            switch (Array.find(file.chunks, func (chunk: FileChunk) : Bool { chunk.index == index })) {
-              case null { null };
-              case (?foundChunk) { ?foundChunk.chunk };
-            };
-          };
+    switch (getUserFiles(msg.caller).get(name)) {
+      case null null;
+      case (?file) {
+        switch (Array.find(file.chunks, func (chunk: FileChunk) : Bool { chunk.index == index })) {
+          case null null;
+          case (?foundChunk) ?foundChunk.chunk;
         };
       };
     };
   };
 
   public shared(msg) func getFileSize(name: Text) : async Nat {
-    switch (files.get(msg.caller)) {
-      case null { 0 };
-      case (?userFiles) {
-        switch (userFiles.get(name)) {
-          case null { 0 };
-          case (?file) { file.totalSize };
-        };
-      };
+    switch (getUserFiles(msg.caller).get(name)) {
+      case null 0;
+      case (?file) file.totalSize;
     };
   };
 
   public shared(msg) func getFileType(name: Text) : async ?Text {
-    switch (files.get(msg.caller)) {
-      case null { null };
-      case (?userFiles) {
-        switch (userFiles.get(name)) {
-          case null { null };
-          case (?file) { ?file.fileType };
-        };
-      };
+    switch (getUserFiles(msg.caller).get(name)) {
+      case null null;
+      case (?file) ?file.fileType;
     };
   };
 
   public shared(msg) func deleteFile(name: Text) : async Bool {
-    switch (files.get(msg.caller)) {
-      case null { false };
-      case (?userFiles) {
-        userFiles.delete(name);
-        true
-      };
-    };
+    Option.isSome(getUserFiles(msg.caller).remove(name))
   };
 
   system func preupgrade() {
+    let entries : Iter.Iter<(Principal, UserFiles)> = files.entries();
     stableFiles := Iter.toArray(
-      Iter.map<(Principal, HashMap.HashMap<Text, File>), (Principal, [(Text, File)])>(
-        files.entries(),
-        func ((principal, userFiles): (Principal, HashMap.HashMap<Text, File>)) : (Principal, [(Text, File)]) {
+      Iter.map<(Principal, UserFiles), (Principal, [(Text, File)])>(
+        entries,
+        func ((principal, userFiles) : (Principal, UserFiles)) : (Principal, [(Text, File)]) {
           (principal, Iter.toArray(userFiles.entries()))
         }
       )
@@ -162,10 +128,10 @@ actor {
   };
 
   system func postupgrade() {
-    files := HashMap.fromIter<Principal, HashMap.HashMap<Text, File>>(
-      Iter.map<(Principal, [(Text, File)]), (Principal, HashMap.HashMap<Text, File>)>(
+    files := HashMap.fromIter<Principal, UserFiles>(
+      Iter.map<(Principal, [(Text, File)]), (Principal, UserFiles)>(
         stableFiles.vals(),
-        func ((principal, userFileEntries): (Principal, [(Text, File)])) : (Principal, HashMap.HashMap<Text, File>) {
+        func ((principal, userFileEntries) : (Principal, [(Text, File)])) : (Principal, UserFiles) {
           let userFiles = HashMap.HashMap<Text, File>(0, Text.equal, Text.hash);
           for ((name, file) in userFileEntries.vals()) {
             userFiles.put(name, file);
