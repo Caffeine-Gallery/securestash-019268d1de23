@@ -47,7 +47,11 @@ actor {
             userFiles.put(name, [{ name = name; chunk = chunk; index = index; totalChunks = totalChunks }]);
           };
           case (?existingChunks) {
-            userFiles.put(name, Array.append(existingChunks, [{ name = name; chunk = chunk; index = index; totalChunks = totalChunks }]));
+            let newChunks = Array.append(existingChunks, [{ name = name; chunk = chunk; index = index; totalChunks = totalChunks }]);
+            let sortedChunks = Array.sort(newChunks, func (a: FileChunk, b: FileChunk) : { #less; #equal; #greater } {
+              if (a.index < b.index) #less else if (a.index > b.index) #greater else #equal
+            });
+            userFiles.put(name, sortedChunks);
           };
         };
       };

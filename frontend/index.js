@@ -102,25 +102,39 @@ async function downloadFile(name) {
   progressBar.style.width = "0%";
   progressText.textContent = `Downloading ${name}: 0%`;
 
-  const totalChunks = await backend.getTotalChunks(name);
-  let content = new Uint8Array(0);
+  try {
+    const totalChunks = await backend.getTotalChunks(name);
+    let content = new Uint8Array(0);
 
-  for (let i = 0; i < totalChunks; i++) {
-    const chunk = await backend.getFileChunk(name, i);
-    content = new Uint8Array([...content, ...chunk]);
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkBlob = await backend.getFileChunk(name, i);
+      if (chunkBlob) {
+        const chunkArray = new Uint8Array(chunkBlob);
+        content = new Uint8Array([...content, ...chunkArray]);
+      } else {
+        throw new Error(`Failed to retrieve chunk ${i} of file ${name}`);
+      }
 
-    const progress = Math.round(((i + 1) / totalChunks) * 100);
-    progressBar.style.width = `${progress}%`;
-    progressText.textContent = `Downloading ${name}: ${progress}%`;
+      const progress = Math.round(((i + 1) / totalChunks) * 100);
+      progressBar.style.width = `${progress}%`;
+      progressText.textContent = `Downloading ${name}: ${progress}%`;
+    }
+
+    const blob = new Blob([content], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Download failed:", error);
+    alert(`Failed to download ${name}: ${error.message}`);
+  } finally {
+    progressContainer.style.display = "none";
   }
-
-  const blob = new Blob([content], { type: "application/octet-stream" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = name;
-  link.click();
-
-  progressContainer.style.display = "none";
 }
 
 async function deleteFile(name) {
