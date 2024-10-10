@@ -1,8 +1,9 @@
 service : {
   deleteFile: (text) -> (bool);
-  getFile: (text) -> (opt blob);
+  getFileChunk: (text, nat) -> (opt blob);
   getFiles: () -> (vec record {name: text;});
+  getTotalChunks: (text) -> (nat);
   isRegistered: () -> (bool);
   registerUser: () -> ();
-  uploadFile: (text, blob) -> ();
+  uploadFileChunk: (text, blob, nat, nat) -> ();
 }

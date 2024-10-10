@@ -119,6 +119,26 @@ h1 {
   margin-top: 10px;
 }
 
+#progress-container {
+  width: 100%;
+  background-color: #444;
+  border-radius: 5px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+#progress-bar {
+  width: 0;
+  height: 20px;
+  background-color: var(--secondary-color);
+  transition: width 0.3s ease;
+}
+
+#progress-text {
+  margin-top: 5px;
+  font-size: 0.9em;
+}
+
 @media (max-width: 600px) {
   .file-item {
     flex-direction: column;

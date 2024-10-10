@@ -56,31 +56,71 @@ function displayFiles() {
 async function uploadFiles() {
   const fileInput = document.getElementById("file-input");
   const files = fileInput.files;
+  const progressContainer = document.getElementById("progress-container");
+  const progressBar = document.getElementById("progress-bar");
+  const progressText = document.getElementById("progress-text");
+
+  progressContainer.style.display = "block";
+
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const reader = new FileReader();
+
     reader.onload = async (e) => {
       const content = new Uint8Array(e.target.result);
-      await backend.uploadFile(file.name, content);
-      await loadFiles();
+      const chunkSize = 1024 * 1024; // 1MB chunks
+      const totalChunks = Math.ceil(content.length / chunkSize);
+
+      for (let j = 0; j < totalChunks; j++) {
+        const start = j * chunkSize;
+        const end = Math.min(start + chunkSize, content.length);
+        const chunk = content.slice(start, end);
+
+        await backend.uploadFileChunk(file.name, chunk, j, totalChunks);
+
+        const progress = Math.round(((j + 1) / totalChunks) * 100);
+        progressBar.style.width = `${progress}%`;
+        progressText.textContent = `Uploading ${file.name}: ${progress}%`;
+      }
     };
+
     reader.readAsArrayBuffer(file);
   }
+
+  await loadFiles();
+  progressContainer.style.display = "none";
   fileInput.value = "";
   updateFileLabel();
 }
 
 async function downloadFile(name) {
-  const content = await backend.getFile(name);
-  if (content) {
-    const blob = new Blob([content], { type: "application/octet-stream" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = name;
-    link.click();
-  } else {
-    alert("File not found");
+  const progressContainer = document.getElementById("progress-container");
+  const progressBar = document.getElementById("progress-bar");
+  const progressText = document.getElementById("progress-text");
+
+  progressContainer.style.display = "block";
+  progressBar.style.width = "0%";
+  progressText.textContent = `Downloading ${name}: 0%`;
+
+  const totalChunks = await backend.getTotalChunks(name);
+  let content = new Uint8Array(0);
+
+  for (let i = 0; i < totalChunks; i++) {
+    const chunk = await backend.getFileChunk(name, i);
+    content = new Uint8Array([...content, ...chunk]);
+
+    const progress = Math.round(((i + 1) / totalChunks) * 100);
+    progressBar.style.width = `${progress}%`;
+    progressText.textContent = `Downloading ${name}: ${progress}%`;
   }
+
+  const blob = new Blob([content], { type: "application/octet-stream" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = name;
+  link.click();
+
+  progressContainer.style.display = "none";
 }
 
 async function deleteFile(name) {
