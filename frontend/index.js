@@ -39,11 +39,11 @@ async function loadFiles() {
 function displayFiles() {
   const fileListElement = document.getElementById("file-list");
   fileListElement.innerHTML = "";
-  fileList.forEach((file, index) => {
+  fileList.forEach((file) => {
     const fileElement = document.createElement("div");
     fileElement.className = "file-item";
     fileElement.innerHTML = `
-      <span>${file.name}</span>
+      <span>${file.name} (${formatFileSize(file.size)})</span>
       <div class="file-actions">
         <button class="btn btn-small" onclick="downloadFile('${file.name}')">Download</button>
         <button class="btn btn-small btn-danger" onclick="deleteFile('${file.name}')">Delete</button>
@@ -51,6 +51,13 @@ function displayFiles() {
     `;
     fileListElement.appendChild(fileElement);
   });
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + " KB";
+  else if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + " MB";
+  else return (bytes / 1073741824).toFixed(2) + " GB";
 }
 
 async function uploadFiles() {
@@ -110,7 +117,10 @@ async function downloadFile(name) {
       const chunkBlob = await backend.getFileChunk(name, BigInt(i));
       if (chunkBlob) {
         const chunkArray = new Uint8Array(chunkBlob);
-        content = new Uint8Array([...content, ...chunkArray]);
+        const newContent = new Uint8Array(content.length + chunkArray.length);
+        newContent.set(content);
+        newContent.set(chunkArray, content.length);
+        content = newContent;
       } else {
         throw new Error(`Failed to retrieve chunk ${i} of file ${name}`);
       }

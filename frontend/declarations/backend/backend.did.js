@@ -6,7 +6,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(IDL.Vec(IDL.Nat8))],
         [],
       ),
-    'getFiles' : IDL.Func([], [IDL.Vec(IDL.Record({ 'name' : IDL.Text }))], []),
+    'getFiles' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Record({ 'name' : IDL.Text, 'size' : IDL.Nat }))],
+        [],
+      ),
     'getTotalChunks' : IDL.Func([IDL.Text], [IDL.Nat], []),
     'isRegistered' : IDL.Func([], [IDL.Bool], []),
     'registerUser' : IDL.Func([], [], []),

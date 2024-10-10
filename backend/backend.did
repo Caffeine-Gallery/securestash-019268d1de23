@@ -1,7 +1,10 @@
 service : {
   deleteFile: (text) -> (bool);
   getFileChunk: (text, nat) -> (opt blob);
-  getFiles: () -> (vec record {name: text;});
+  getFiles: () -> (vec record {
+                         name: text;
+                         size: nat;
+                       });
   getTotalChunks: (text) -> (nat);
   isRegistered: () -> (bool);
   registerUser: () -> ();

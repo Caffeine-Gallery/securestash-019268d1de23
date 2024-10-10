@@ -5,7 +5,7 @@ import type { IDL } from '@dfinity/candid';
 export interface _SERVICE {
   'deleteFile' : ActorMethod<[string], boolean>,
   'getFileChunk' : ActorMethod<[string, bigint], [] | [Uint8Array | number[]]>,
-  'getFiles' : ActorMethod<[], Array<{ 'name' : string }>>,
+  'getFiles' : ActorMethod<[], Array<{ 'name' : string, 'size' : bigint }>>,
   'getTotalChunks' : ActorMethod<[string], bigint>,
   'isRegistered' : ActorMethod<[], boolean>,
   'registerUser' : ActorMethod<[], undefined>,
