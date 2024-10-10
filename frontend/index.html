@@ -3,31 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Storage App</title>
+    <title>CloudStore - Secure File Storage</title>
     <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-    <div id="auth-section">
-        <h1>File Storage App</h1>
-        <button id="login-button">Login</button>
-    </div>
+    <div id="app">
+        <header>
+            <h1><i class="fas fa-cloud"></i> CloudStore</h1>
+        </header>
 
-    <div id="file-section" style="display: none;">
-        <h1>Your Files</h1>
-        <div id="file-upload">
-            <input type="file" id="file-input" multiple style="display: none;">
-            <label for="file-input" id="file-label" class="btn">Choose Files</label>
-            <button id="upload-button" class="btn">Upload</button>
-        </div>
-        <div id="error-message" style="color: red;"></div>
-        <div id="loading-indicator" style="display: none;">
-            <p>Loading files...</p>
-        </div>
-        <div id="file-list"></div>
-        <div id="progress-container" style="display: none;">
-            <div id="progress-bar"></div>
-            <div id="progress-text"></div>
-        </div>
+        <main>
+            <section id="auth-section">
+                <h2>Welcome to CloudStore</h2>
+                <p>Secure, decentralized file storage on the Internet Computer.</p>
+                <button id="login-button" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login</button>
+            </section>
+
+            <section id="file-section" style="display: none;">
+                <div id="file-upload-area">
+                    <input type="file" id="file-input" multiple>
+                    <label for="file-input" id="file-drop-zone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Drag & drop files here or click to select</span>
+                    </label>
+                    <button id="upload-button" class="btn btn-primary"><i class="fas fa-upload"></i> Upload</button>
+                </div>
+
+                <div id="error-message"></div>
+
+                <div id="file-list-container">
+                    <h2>Your Files</h2>
+                    <div id="file-list"></div>
+                </div>
+
+                <div id="progress-container">
+                    <div id="progress-bar"></div>
+                    <div id="progress-text"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2023 CloudStore. Powered by the Internet Computer.</p>
+        </footer>
     </div>
 
     <script type="module" src="index.js"></script>
