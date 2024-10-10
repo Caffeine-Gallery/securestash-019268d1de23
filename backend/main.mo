@@ -41,6 +41,15 @@ actor {
     };
   };
 
+  public shared(msg) func checkFileExists(name: Text) : async Bool {
+    switch (files.get(msg.caller)) {
+      case null { false };
+      case (?userFiles) {
+        Option.isSome(userFiles.get(name))
+      };
+    };
+  };
+
   public shared(msg) func uploadFileChunk(name: Text, chunk: Blob, index: Nat, totalChunks: Nat) : async () {
     let userFiles = switch (files.get(msg.caller)) {
       case null {

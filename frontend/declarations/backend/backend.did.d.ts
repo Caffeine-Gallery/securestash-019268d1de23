@@ -3,6 +3,7 @@ import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
 export interface _SERVICE {
+  'checkFileExists' : ActorMethod<[string], boolean>,
   'deleteFile' : ActorMethod<[string], boolean>,
   'getFileChunk' : ActorMethod<[string, bigint], [] | [Uint8Array | number[]]>,
   'getFileSize' : ActorMethod<[string], bigint>,

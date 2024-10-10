@@ -69,14 +69,31 @@ function displayFiles() {
 async function uploadFiles() {
   const fileInput = document.getElementById("file-input");
   const files = fileInput.files;
+  const errorMessage = document.getElementById("error-message");
   const progressContainer = document.getElementById("progress-container");
   const progressBar = document.getElementById("progress-bar");
   const progressText = document.getElementById("progress-text");
+
+  errorMessage.textContent = "";
+
+  if (files.length === 0) {
+    errorMessage.textContent = "Please select a file to upload.";
+    return;
+  }
 
   progressContainer.style.display = "block";
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
+    
+    // Check if file already exists
+    const fileExists = await backend.checkFileExists(file.name);
+    if (fileExists) {
+      errorMessage.textContent = `File "${file.name}" already exists. Please choose a different file name.`;
+      progressContainer.style.display = "none";
+      return;
+    }
+
     const reader = new FileReader();
 
     reader.onload = async (e) => {

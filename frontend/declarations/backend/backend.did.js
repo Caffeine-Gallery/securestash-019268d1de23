@@ -1,5 +1,6 @@
 export const idlFactory = ({ IDL }) => {
   return IDL.Service({
+    'checkFileExists' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'deleteFile' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'getFileChunk' : IDL.Func(
         [IDL.Text, IDL.Nat],

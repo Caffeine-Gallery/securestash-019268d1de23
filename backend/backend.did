@@ -1,4 +1,5 @@
 service : {
+  checkFileExists: (text) -> (bool);
   deleteFile: (text) -> (bool);
   getFileChunk: (text, nat) -> (opt blob);
   getFileSize: (text) -> (nat);
