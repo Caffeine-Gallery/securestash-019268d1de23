@@ -13,10 +13,8 @@ import Option "mo:base/Option";
 
 actor {
   type FileChunk = {
-    name: Text;
     chunk: Blob;
     index: Nat;
-    totalChunks: Nat;
   };
 
   type File = {
@@ -26,7 +24,8 @@ actor {
     fileType: Text;
   };
 
-  private stable var fileEntries : [(Principal, [Text])] = [];
+  private stable var stableFiles : [(Principal, [(Text, File)])] = [];
+
   private var files = HashMap.HashMap<Principal, HashMap.HashMap<Text, File>>(0, Principal.equal, Principal.hash);
 
   public shared(msg) func isRegistered() : async Bool {
@@ -61,18 +60,16 @@ actor {
       case (?existingFiles) { existingFiles };
     };
 
-    let fileChunk = { name = name; chunk = chunk; index = index; totalChunks = totalChunks };
+    let fileChunk = { chunk = chunk; index = index };
 
     switch (userFiles.get(name)) {
       case null {
-        userFiles.put(name, { name = name; chunks = [fileChunk]; totalSize = chunk.size(); fileType = fileType });
+        let newChunks = [fileChunk];
+        userFiles.put(name, { name = name; chunks = newChunks; totalSize = chunk.size(); fileType = fileType });
       };
       case (?existingFile) {
         let updatedChunks = Array.append(existingFile.chunks, [fileChunk]);
-        let sortedChunks = Array.sort(updatedChunks, func (a: FileChunk, b: FileChunk) : { #less; #equal; #greater } {
-          if (a.index < b.index) #less else if (a.index > b.index) #greater else #equal
-        });
-        userFiles.put(name, { name = name; chunks = sortedChunks; totalSize = existingFile.totalSize + chunk.size(); fileType = fileType });
+        userFiles.put(name, { name = name; chunks = updatedChunks; totalSize = existingFile.totalSize + chunk.size(); fileType = fileType });
       };
     };
   };
@@ -154,11 +151,11 @@ actor {
   };
 
   system func preupgrade() {
-    fileEntries := Iter.toArray(
-      Iter.map<(Principal, HashMap.HashMap<Text, File>), (Principal, [Text])>(
+    stableFiles := Iter.toArray(
+      Iter.map<(Principal, HashMap.HashMap<Text, File>), (Principal, [(Text, File)])>(
         files.entries(),
-        func ((principal, userFiles): (Principal, HashMap.HashMap<Text, File>)) : (Principal, [Text]) {
-          (principal, Iter.toArray(userFiles.keys()))
+        func ((principal, userFiles): (Principal, HashMap.HashMap<Text, File>)) : (Principal, [(Text, File)]) {
+          (principal, Iter.toArray(userFiles.entries()))
         }
       )
     );
@@ -166,12 +163,12 @@ actor {
 
   system func postupgrade() {
     files := HashMap.fromIter<Principal, HashMap.HashMap<Text, File>>(
-      Iter.map<(Principal, [Text]), (Principal, HashMap.HashMap<Text, File>)>(
-        fileEntries.vals(),
-        func ((principal, fileNames): (Principal, [Text])) : (Principal, HashMap.HashMap<Text, File>) {
+      Iter.map<(Principal, [(Text, File)]), (Principal, HashMap.HashMap<Text, File>)>(
+        stableFiles.vals(),
+        func ((principal, userFileEntries): (Principal, [(Text, File)])) : (Principal, HashMap.HashMap<Text, File>) {
           let userFiles = HashMap.HashMap<Text, File>(0, Text.equal, Text.hash);
-          for (name in fileNames.vals()) {
-            userFiles.put(name, { name = name; chunks = []; totalSize = 0; fileType = "" });
+          for ((name, file) in userFileEntries.vals()) {
+            userFiles.put(name, file);
           };
           (principal, userFiles)
         }
@@ -180,5 +177,6 @@ actor {
       Principal.equal,
       Principal.hash
     );
+    stableFiles := [];
   };
 };
