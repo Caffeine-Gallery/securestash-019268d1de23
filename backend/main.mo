@@ -23,6 +23,7 @@ actor {
     name: Text;
     chunks: [FileChunk];
     totalSize: Nat;
+    fileType: Text;
   };
 
   private stable var fileEntries : [(Principal, [Text])] = [];
@@ -50,7 +51,7 @@ actor {
     };
   };
 
-  public shared(msg) func uploadFileChunk(name: Text, chunk: Blob, index: Nat, totalChunks: Nat) : async () {
+  public shared(msg) func uploadFileChunk(name: Text, chunk: Blob, index: Nat, totalChunks: Nat, fileType: Text) : async () {
     let userFiles = switch (files.get(msg.caller)) {
       case null {
         let newFileMap = HashMap.HashMap<Text, File>(0, Text.equal, Text.hash);
@@ -64,24 +65,24 @@ actor {
 
     switch (userFiles.get(name)) {
       case null {
-        userFiles.put(name, { name = name; chunks = [fileChunk]; totalSize = chunk.size() });
+        userFiles.put(name, { name = name; chunks = [fileChunk]; totalSize = chunk.size(); fileType = fileType });
       };
       case (?existingFile) {
         let updatedChunks = Array.append(existingFile.chunks, [fileChunk]);
         let sortedChunks = Array.sort(updatedChunks, func (a: FileChunk, b: FileChunk) : { #less; #equal; #greater } {
           if (a.index < b.index) #less else if (a.index > b.index) #greater else #equal
         });
-        userFiles.put(name, { name = name; chunks = sortedChunks; totalSize = existingFile.totalSize + chunk.size() });
+        userFiles.put(name, { name = name; chunks = sortedChunks; totalSize = existingFile.totalSize + chunk.size(); fileType = fileType });
       };
     };
   };
 
-  public shared(msg) func getFiles() : async [{ name: Text; size: Nat }] {
+  public shared(msg) func getFiles() : async [{ name: Text; size: Nat; fileType: Text }] {
     switch (files.get(msg.caller)) {
       case null { [] };
       case (?userFiles) {
-        Iter.toArray(Iter.map(userFiles.vals(), func (file: File) : { name: Text; size: Nat } {
-          { name = file.name; size = file.totalSize }
+        Iter.toArray(Iter.map(userFiles.vals(), func (file: File) : { name: Text; size: Nat; fileType: Text } {
+          { name = file.name; size = file.totalSize; fileType = file.fileType }
         }))
       };
     };
@@ -130,6 +131,18 @@ actor {
     };
   };
 
+  public shared(msg) func getFileType(name: Text) : async ?Text {
+    switch (files.get(msg.caller)) {
+      case null { null };
+      case (?userFiles) {
+        switch (userFiles.get(name)) {
+          case null { null };
+          case (?file) { ?file.fileType };
+        };
+      };
+    };
+  };
+
   public shared(msg) func deleteFile(name: Text) : async Bool {
     switch (files.get(msg.caller)) {
       case null { false };
@@ -158,7 +171,7 @@ actor {
         func ((principal, fileNames): (Principal, [Text])) : (Principal, HashMap.HashMap<Text, File>) {
           let userFiles = HashMap.HashMap<Text, File>(0, Text.equal, Text.hash);
           for (name in fileNames.vals()) {
-            userFiles.put(name, { name = name; chunks = []; totalSize = 0 });
+            userFiles.put(name, { name = name; chunks = []; totalSize = 0; fileType = "" });
           };
           (principal, userFiles)
         }

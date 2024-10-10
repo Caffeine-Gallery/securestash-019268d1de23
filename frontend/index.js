@@ -106,7 +106,7 @@ async function uploadFiles() {
                 const end = Math.min(start + chunkSize, content.length);
                 const chunk = content.slice(start, end);
 
-                await backend.uploadFileChunk(file.name, chunk, BigInt(j), BigInt(totalChunks));
+                await backend.uploadFileChunk(file.name, chunk, BigInt(j), BigInt(totalChunks), file.type);
 
                 const progress = Math.round(((j + 1) / totalChunks) * 100);
                 progressBar.style.width = `${progress}%`;
@@ -134,6 +134,7 @@ async function downloadFile(name) {
     try {
         const totalChunks = Number(await backend.getTotalChunks(name));
         const expectedFileSize = Number(await backend.getFileSize(name));
+        const fileType = await backend.getFileType(name);
         let content = new Uint8Array(expectedFileSize);
         let offset = 0;
 
@@ -156,7 +157,7 @@ async function downloadFile(name) {
             throw new Error(`File size mismatch. Expected: ${expectedFileSize}, Actual: ${content.length}`);
         }
 
-        const blob = new Blob([content], { type: "application/octet-stream" });
+        const blob = new Blob([content], { type: fileType || "application/octet-stream" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;

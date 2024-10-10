@@ -7,12 +7,16 @@ export interface _SERVICE {
   'deleteFile' : ActorMethod<[string], boolean>,
   'getFileChunk' : ActorMethod<[string, bigint], [] | [Uint8Array | number[]]>,
   'getFileSize' : ActorMethod<[string], bigint>,
-  'getFiles' : ActorMethod<[], Array<{ 'name' : string, 'size' : bigint }>>,
+  'getFileType' : ActorMethod<[string], [] | [string]>,
+  'getFiles' : ActorMethod<
+    [],
+    Array<{ 'name' : string, 'size' : bigint, 'fileType' : string }>
+  >,
   'getTotalChunks' : ActorMethod<[string], bigint>,
   'isRegistered' : ActorMethod<[], boolean>,
   'registerUser' : ActorMethod<[], undefined>,
   'uploadFileChunk' : ActorMethod<
-    [string, Uint8Array | number[], bigint, bigint],
+    [string, Uint8Array | number[], bigint, bigint, string],
     undefined
   >,
 }
