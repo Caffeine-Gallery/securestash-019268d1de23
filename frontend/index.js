@@ -43,7 +43,7 @@ function displayFiles() {
     const fileElement = document.createElement("div");
     fileElement.className = "file-item";
     fileElement.innerHTML = `
-      <span>${file.name} (${formatFileSize(file.size)})</span>
+      <span>${file.name} (${formatFileSize(Number(file.size))})</span>
       <div class="file-actions">
         <button class="btn btn-small" onclick="downloadFile('${file.name}')">Download</button>
         <button class="btn btn-small btn-danger" onclick="deleteFile('${file.name}')">Delete</button>
