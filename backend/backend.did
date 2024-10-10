@@ -1,6 +1,7 @@
 service : {
   deleteFile: (text) -> (bool);
   getFileChunk: (text, nat) -> (opt blob);
+  getFileSize: (text) -> (nat);
   getFiles: () -> (vec record {
                          name: text;
                          size: nat;

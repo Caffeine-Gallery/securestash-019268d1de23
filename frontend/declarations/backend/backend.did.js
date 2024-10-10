@@ -6,6 +6,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(IDL.Vec(IDL.Nat8))],
         [],
       ),
+    'getFileSize' : IDL.Func([IDL.Text], [IDL.Nat], []),
     'getFiles' : IDL.Func(
         [],
         [IDL.Vec(IDL.Record({ 'name' : IDL.Text, 'size' : IDL.Nat }))],

@@ -109,6 +109,18 @@ actor {
     };
   };
 
+  public shared(msg) func getFileSize(name: Text) : async Nat {
+    switch (files.get(msg.caller)) {
+      case null { 0 };
+      case (?userFiles) {
+        switch (userFiles.get(name)) {
+          case null { 0 };
+          case (?file) { file.totalSize };
+        };
+      };
+    };
+  };
+
   public shared(msg) func deleteFile(name: Text) : async Bool {
     switch (files.get(msg.caller)) {
       case null { false };

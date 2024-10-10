@@ -111,16 +111,16 @@ async function downloadFile(name) {
 
   try {
     const totalChunks = Number(await backend.getTotalChunks(name));
-    let content = new Uint8Array(0);
+    const expectedFileSize = Number(await backend.getFileSize(name));
+    let content = new Uint8Array(expectedFileSize);
+    let offset = 0;
 
     for (let i = 0; i < totalChunks; i++) {
       const chunkBlob = await backend.getFileChunk(name, BigInt(i));
       if (chunkBlob) {
         const chunkArray = new Uint8Array(chunkBlob);
-        const newContent = new Uint8Array(content.length + chunkArray.length);
-        newContent.set(content);
-        newContent.set(chunkArray, content.length);
-        content = newContent;
+        content.set(chunkArray, offset);
+        offset += chunkArray.length;
       } else {
         throw new Error(`Failed to retrieve chunk ${i} of file ${name}`);
       }
@@ -128,6 +128,10 @@ async function downloadFile(name) {
       const progress = Math.round(((i + 1) / totalChunks) * 100);
       progressBar.style.width = `${progress}%`;
       progressText.textContent = `Downloading ${name}: ${progress}%`;
+    }
+
+    if (content.length !== expectedFileSize) {
+      throw new Error(`File size mismatch. Expected: ${expectedFileSize}, Actual: ${content.length}`);
     }
 
     const blob = new Blob([content], { type: "application/octet-stream" });
