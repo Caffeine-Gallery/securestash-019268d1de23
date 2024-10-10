@@ -67,9 +67,9 @@ function displayFiles() {
     });
 }
 
-async function uploadFiles() {
+async function uploadFile() {
     const fileInput = document.getElementById("file-input");
-    const files = fileInput.files;
+    const file = fileInput.files[0];
     const errorMessage = document.getElementById("error-message");
     const progressContainer = document.getElementById("progress-container");
     const progressBar = document.getElementById("progress-bar");
@@ -77,49 +77,45 @@ async function uploadFiles() {
 
     errorMessage.textContent = "";
 
-    if (files.length === 0) {
+    if (!file) {
         errorMessage.textContent = "Please select a file to upload.";
         return;
     }
 
     progressContainer.style.display = "block";
 
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        
-        const fileExists = await backend.checkFileExists(file.name);
-        if (fileExists) {
-            errorMessage.textContent = `File "${file.name}" already exists. Please choose a different file name.`;
-            progressContainer.style.display = "none";
-            return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = async (e) => {
-            const content = new Uint8Array(e.target.result);
-            const chunkSize = 1024 * 1024; // 1MB chunks
-            const totalChunks = Math.ceil(content.length / chunkSize);
-
-            for (let j = 0; j < totalChunks; j++) {
-                const start = j * chunkSize;
-                const end = Math.min(start + chunkSize, content.length);
-                const chunk = content.slice(start, end);
-
-                await backend.uploadFileChunk(file.name, chunk, BigInt(j), BigInt(totalChunks), file.type);
-
-                const progress = Math.round(((j + 1) / totalChunks) * 100);
-                progressBar.style.width = `${progress}%`;
-                progressText.textContent = `Uploading ${file.name}: ${progress}%`;
-            }
-        };
-
-        reader.readAsArrayBuffer(file);
+    const fileExists = await backend.checkFileExists(file.name);
+    if (fileExists) {
+        errorMessage.textContent = `File "${file.name}" already exists. Please choose a different file name.`;
+        progressContainer.style.display = "none";
+        return;
     }
 
-    await loadFiles();
-    progressContainer.style.display = "none";
-    fileInput.value = "";
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+        const content = new Uint8Array(e.target.result);
+        const chunkSize = 1024 * 1024; // 1MB chunks
+        const totalChunks = Math.ceil(content.length / chunkSize);
+
+        for (let i = 0; i < totalChunks; i++) {
+            const start = i * chunkSize;
+            const end = Math.min(start + chunkSize, content.length);
+            const chunk = content.slice(start, end);
+
+            await backend.uploadFileChunk(file.name, chunk, BigInt(i), BigInt(totalChunks), file.type);
+
+            const progress = Math.round(((i + 1) / totalChunks) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `Uploading ${file.name}: ${progress}%`;
+        }
+
+        await loadFiles();
+        progressContainer.style.display = "none";
+        fileInput.value = "";
+    };
+
+    reader.readAsArrayBuffer(file);
 }
 
 async function downloadFile(name) {
@@ -157,8 +153,7 @@ async function downloadFile(name) {
             throw new Error(`File size mismatch. Expected: ${expectedFileSize}, Actual: ${content.length}`);
         }
 
-        const mimeType = fileType || getMimeTypeFromFileName(name) || "application/octet-stream";
-        const blob = new Blob([content], { type: mimeType });
+        const blob = new Blob([content], { type: fileType || "application/octet-stream" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -175,28 +170,6 @@ async function downloadFile(name) {
     }
 }
 
-function getMimeTypeFromFileName(fileName) {
-    const extension = fileName.split('.').pop().toLowerCase();
-    const mimeTypes = {
-        'txt': 'text/plain',
-        'pdf': 'application/pdf',
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'doc': 'application/msword',
-        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'xls': 'application/vnd.ms-excel',
-        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'ppt': 'application/vnd.ms-powerpoint',
-        'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'mp3': 'audio/mpeg',
-        'mp4': 'video/mp4',
-        'zip': 'application/zip'
-    };
-    return mimeTypes[extension] || null;
-}
-
 async function deleteFile(name) {
     if (confirm(`Are you sure you want to delete "${name}"?`)) {
         const success = await backend.deleteFile(name);
@@ -208,47 +181,10 @@ async function deleteFile(name) {
     }
 }
 
-function setupDragAndDrop() {
-    const dropZone = document.getElementById("file-drop-zone");
-    const fileInput = document.getElementById("file-input");
-
-    dropZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dropZone.classList.add("dragover");
-    });
-
-    dropZone.addEventListener("dragleave", () => {
-        dropZone.classList.remove("dragover");
-    });
-
-    dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropZone.classList.remove("dragover");
-        fileInput.files = e.dataTransfer.files;
-        updateFileLabel();
-    });
-}
-
-function updateFileLabel() {
-    const fileInput = document.getElementById("file-input");
-    const fileLabel = document.querySelector("#file-drop-zone span");
-    if (fileInput.files.length > 0) {
-        if (fileInput.files.length === 1) {
-            fileLabel.textContent = fileInput.files[0].name;
-        } else {
-            fileLabel.textContent = `${fileInput.files.length} files selected`;
-        }
-    } else {
-        fileLabel.textContent = "Drag & drop files here or click to select";
-    }
-}
-
 window.onload = () => {
     init();
     document.getElementById("login-button").onclick = login;
-    document.getElementById("upload-button").onclick = uploadFiles;
-    document.getElementById("file-input").onchange = updateFileLabel;
-    setupDragAndDrop();
+    document.getElementById("upload-button").onclick = uploadFile;
     window.downloadFile = downloadFile;
     window.deleteFile = deleteFile;
 };

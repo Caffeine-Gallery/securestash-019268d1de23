@@ -58,32 +58,12 @@ h1, h2 {
 
 #file-upload-area {
     margin-bottom: 2rem;
-}
-
-#file-drop-zone {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 200px;
-    border: 2px dashed var(--primary-color);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-#file-drop-zone:hover {
-    background-color: rgba(74, 144, 226, 0.1);
-}
-
-#file-drop-zone i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: var(--primary-color);
 }
 
 #file-input {
-    display: none;
+    margin-right: 1rem;
 }
 
 #error-message {
