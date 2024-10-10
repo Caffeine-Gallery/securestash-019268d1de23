@@ -1,4 +1,8 @@
 service : {
+  deleteFile: (text) -> (bool);
+  getFile: (text) -> (opt blob);
+  getFiles: () -> (vec record {name: text;});
   isRegistered: () -> (bool);
-  registerUser: () -> (text);
+  registerUser: () -> ();
+  uploadFile: (text, blob) -> ();
 }

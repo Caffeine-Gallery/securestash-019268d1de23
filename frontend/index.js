@@ -1,5 +1,6 @@
 import { AuthClient } from "@dfinity/auth-client";
 import { backend } from "declarations/backend";
+import { Principal } from "@dfinity/principal";
 
 let authClient;
 let fileList = [];
@@ -30,8 +31,8 @@ async function handleAuthenticated() {
   loadFiles();
 }
 
-function loadFiles() {
-  fileList = JSON.parse(localStorage.getItem("files") || "[]");
+async function loadFiles() {
+  fileList = await backend.getFiles();
   displayFiles();
 }
 
@@ -44,47 +45,51 @@ function displayFiles() {
     fileElement.innerHTML = `
       <span>${file.name}</span>
       <div class="file-actions">
-        <button class="btn btn-small" onclick="downloadFile(${index})">Download</button>
-        <button class="btn btn-small btn-danger" onclick="deleteFile(${index})">Delete</button>
+        <button class="btn btn-small" onclick="downloadFile('${file.name}')">Download</button>
+        <button class="btn btn-small btn-danger" onclick="deleteFile('${file.name}')">Delete</button>
       </div>
     `;
     fileListElement.appendChild(fileElement);
   });
 }
 
-function uploadFiles() {
+async function uploadFiles() {
   const fileInput = document.getElementById("file-input");
   const files = fileInput.files;
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const reader = new FileReader();
-    reader.onload = (e) => {
-      fileList.push({
-        name: file.name,
-        type: file.type,
-        content: e.target.result
-      });
-      localStorage.setItem("files", JSON.stringify(fileList));
-      displayFiles();
+    reader.onload = async (e) => {
+      const content = new Uint8Array(e.target.result);
+      await backend.uploadFile(file.name, content);
+      await loadFiles();
     };
-    reader.readAsDataURL(file);
+    reader.readAsArrayBuffer(file);
   }
   fileInput.value = "";
   updateFileLabel();
 }
 
-function downloadFile(index) {
-  const file = fileList[index];
-  const link = document.createElement("a");
-  link.href = file.content;
-  link.download = file.name;
-  link.click();
+async function downloadFile(name) {
+  const content = await backend.getFile(name);
+  if (content) {
+    const blob = new Blob([content], { type: "application/octet-stream" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = name;
+    link.click();
+  } else {
+    alert("File not found");
+  }
 }
 
-function deleteFile(index) {
-  fileList.splice(index, 1);
-  localStorage.setItem("files", JSON.stringify(fileList));
-  displayFiles();
+async function deleteFile(name) {
+  const success = await backend.deleteFile(name);
+  if (success) {
+    await loadFiles();
+  } else {
+    alert("Failed to delete file");
+  }
 }
 
 function updateFileLabel() {
