@@ -28,12 +28,25 @@ async function handleAuthenticated() {
     await backend.registerUser();
   }
   
-  loadFiles();
+  await loadFiles();
 }
 
 async function loadFiles() {
-  fileList = await backend.getFiles();
-  displayFiles();
+  const loadingIndicator = document.getElementById("loading-indicator");
+  const fileListElement = document.getElementById("file-list");
+  
+  loadingIndicator.style.display = "block";
+  fileListElement.innerHTML = "";
+
+  try {
+    fileList = await backend.getFiles();
+    displayFiles();
+  } catch (error) {
+    console.error("Failed to load files:", error);
+    fileListElement.innerHTML = "<p>Failed to load files. Please try again.</p>";
+  } finally {
+    loadingIndicator.style.display = "none";
+  }
 }
 
 function displayFiles() {
@@ -43,7 +56,7 @@ function displayFiles() {
     const fileElement = document.createElement("div");
     fileElement.className = "file-item";
     fileElement.innerHTML = `
-      <span>${file.name} (${formatFileSize(Number(file.size))})</span>
+      <span>${file.name}</span>
       <div class="file-actions">
         <button class="btn btn-small" onclick="downloadFile('${file.name}')">Download</button>
         <button class="btn btn-small btn-danger" onclick="deleteFile('${file.name}')">Delete</button>
@@ -51,13 +64,6 @@ function displayFiles() {
     `;
     fileListElement.appendChild(fileElement);
   });
-}
-
-function formatFileSize(bytes) {
-  if (bytes < 1024) return bytes + " B";
-  else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + " KB";
-  else if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + " MB";
-  else return (bytes / 1073741824).toFixed(2) + " GB";
 }
 
 async function uploadFiles() {

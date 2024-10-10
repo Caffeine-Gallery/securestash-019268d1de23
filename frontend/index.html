@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileVault</title>
+    <title>File Storage App</title>
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
-    <div id="app">
-        <header>
-            <h1>FileVault</h1>
-        </header>
-        <main>
-            <div id="auth-section">
-                <button id="login-button" class="btn">Login with Internet Identity</button>
-            </div>
-            <div id="file-section" style="display: none;">
-                <div class="file-upload">
-                    <input type="file" id="file-input" multiple>
-                    <label for="file-input" id="file-label" class="btn">Choose Files</label>
-                    <button id="upload-button" class="btn btn-primary">Upload</button>
-                </div>
-                <div id="progress-container" style="display: none;">
-                    <div id="progress-bar"></div>
-                    <div id="progress-text"></div>
-                </div>
-                <div id="file-list"></div>
-            </div>
-        </main>
+    <div id="auth-section">
+        <h1>File Storage App</h1>
+        <button id="login-button">Login</button>
     </div>
+
+    <div id="file-section" style="display: none;">
+        <h1>Your Files</h1>
+        <div id="file-upload">
+            <input type="file" id="file-input" multiple style="display: none;">
+            <label for="file-input" id="file-label" class="btn">Choose Files</label>
+            <button id="upload-button" class="btn">Upload</button>
+        </div>
+        <div id="loading-indicator" style="display: none;">
+            <p>Loading files...</p>
+        </div>
+        <div id="file-list"></div>
+        <div id="progress-container" style="display: none;">
+            <div id="progress-bar"></div>
+            <div id="progress-text"></div>
+        </div>
+    </div>
+
     <script type="module" src="index.js"></script>
 </body>
 </html>
