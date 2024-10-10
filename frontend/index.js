@@ -76,7 +76,7 @@ async function uploadFiles() {
         const end = Math.min(start + chunkSize, content.length);
         const chunk = content.slice(start, end);
 
-        await backend.uploadFileChunk(file.name, chunk, j, totalChunks);
+        await backend.uploadFileChunk(file.name, chunk, BigInt(j), BigInt(totalChunks));
 
         const progress = Math.round(((j + 1) / totalChunks) * 100);
         progressBar.style.width = `${progress}%`;
@@ -103,11 +103,11 @@ async function downloadFile(name) {
   progressText.textContent = `Downloading ${name}: 0%`;
 
   try {
-    const totalChunks = await backend.getTotalChunks(name);
+    const totalChunks = Number(await backend.getTotalChunks(name));
     let content = new Uint8Array(0);
 
     for (let i = 0; i < totalChunks; i++) {
-      const chunkBlob = await backend.getFileChunk(name, i);
+      const chunkBlob = await backend.getFileChunk(name, BigInt(i));
       if (chunkBlob) {
         const chunkArray = new Uint8Array(chunkBlob);
         content = new Uint8Array([...content, ...chunkArray]);
