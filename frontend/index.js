@@ -53,6 +53,7 @@ async function uploadFile() {
 
 // ... (Other functions: downloadFile, deleteFile, updateProgress, displayFiles, createFileElement, loadFiles remain the same)
 
+
 window.onload = () => {
     init();
     elements.loginButton.addEventListener("click", login);
@@ -67,4 +68,3 @@ window.onload = () => {
         }
     });
 };
-
