@@ -1,3 +1,4 @@
+// ... (index.js remains unchanged from the previous optimized version)
 import { AuthClient } from "@dfinity/auth-client";
 import { backend } from "declarations/backend";
 
