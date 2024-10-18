@@ -25,19 +25,14 @@ async function init() {
 }
 
 async function login() {
-    try {
-        await authClient.login({
-            identityProvider: "https://identity.ic0.app/#authorize",
-            onSuccess: handleAuthenticated,
-            onError: (error) => {
-                console.error("Login error:", error);
-                alert("Login failed. Please try again.");
-            },
-        });
-    } catch (error) {
-        console.error("Login error:", error);
-        alert("Login failed. Please try again.");
-    }
+    authClient.login({
+        identityProvider: "https://identity.ic0.app/#authorize",
+        onSuccess: handleAuthenticated,
+        onError: (error) => {
+            console.error("Login error:", error);
+            alert("Login failed. Please try again.");
+        },
+    });
 }
 
 async function handleAuthenticated() {
@@ -51,13 +46,24 @@ async function handleAuthenticated() {
     await loadFiles();
 }
 
-// ... (rest of the code remains the same)
+async function uploadFile() {
+    // ... (uploadFile function body remains the same)
+}
+
+// ... (Other functions: downloadFile, deleteFile, updateProgress, displayFiles, createFileElement, loadFiles remain the same)
 
 window.onload = () => {
     init();
-    elements.loginButton.addEventListener("click", login); // Use addEventListener
-    elements.uploadButton.onclick = uploadFile;
-    window.downloadFile = downloadFile;
-    window.deleteFile = deleteFile;
+    elements.loginButton.addEventListener("click", login);
+    elements.uploadButton.addEventListener("click", uploadFile);
+    elements.fileList.addEventListener("click", async (event) => {
+        if (event.target.classList.contains("fa-download")) {
+            const fileName = event.target.closest(".file-item").querySelector("span").textContent.trim().substring(2);
+            downloadFile(fileName);
+        } else if (event.target.classList.contains("fa-trash")) {
+            const fileName = event.target.closest(".file-item").querySelector("span").textContent.trim().substring(2);
+            deleteFile(fileName);
+        }
+    });
 };
 
